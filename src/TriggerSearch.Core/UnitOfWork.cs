@@ -22,7 +22,6 @@ namespace TriggerSearch.Core
         private readonly TContext _context;
         private bool disposed = false;
         private Dictionary<Type, object> repositories;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="UnitOfWork{TContext}"/> class.
         /// </summary>

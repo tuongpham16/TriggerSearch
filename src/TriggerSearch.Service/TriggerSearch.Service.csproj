@@ -12,6 +12,7 @@
     <ProjectReference Include="..\TriggerSearch.Contract\TriggerSearch.Contract.csproj" />
     <ProjectReference Include="..\TriggerSearch.Core\TriggerSearch.Core.csproj" />
     <ProjectReference Include="..\TriggerSearch.Data\TriggerSearch.Data.csproj" />
+    <ProjectReference Include="..\TriggerSearch.Search\TriggerSearch.Search.csproj" />
   </ItemGroup>
 
 </Project>

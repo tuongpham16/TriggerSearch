@@ -62,7 +62,6 @@ namespace TriggerSearch.Core.Hooks
                         break;
                 }
             }
-
             return result;
         }
     }

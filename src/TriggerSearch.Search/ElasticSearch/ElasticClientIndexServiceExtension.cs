@@ -18,8 +18,7 @@ namespace TriggerSearch.Search.ElasticSearch
 
             var newIndex = client.CreateIndex(indexName, c => c.Settings(s => s
                                                                    .NumberOfShards(2)
-                                                                   .NumberOfReplicas(0)
-                                                                   .RefreshInterval(-1))
+                                                                   .NumberOfReplicas(0))
                                                                .Mappings(m => m
                                                                     .Map<Group>(GroupMapper)));
             if (!newIndex.Acknowledged)
