@@ -11,8 +11,10 @@ namespace TriggerSearch.Core.Hooks
     public class HookDbContext : DbContext
     {
         private Func<HookTrackingResult, object> _func;
-        public HookDbContext(DbContextOptions options) : base(options)
-        { }
+        public HookDbContext(DbContextOptions options, IHookFunction hookFunction) : base(options)
+        {
+            _func = hookFunction.TriggerSave;
+        }
 
         public void AddEvent(Func<HookTrackingResult, object> func)
         {

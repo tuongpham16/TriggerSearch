@@ -5,6 +5,7 @@ using Nest;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TriggerSearch.Core.Hooks;
 using TriggerSearch.Data.Models;
 using TriggerSearch.Search.DTO;
 
@@ -23,7 +24,10 @@ namespace TriggerSearch.Search.ElasticSearch
             services.AddSingleton(_client);
             services.AddScoped<IIndexService, IndexService>();
             services.AddScoped<ITriggerService, TriggerService>();
-
+            IHookFunction hookFunction = new HookFunction();
+            services.AddSingleton(hookFunction);
+            var exeTrigger = new ExecuteTrigger(hookFunction);
+            services.AddSingleton(exeTrigger);
             SearchServiceLocator.SetServiceLocator(services.BuildServiceProvider());
             _client.Mapping<Group, GroupDTO>("groupdto", "ID");
             return services;

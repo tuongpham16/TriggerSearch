@@ -13,7 +13,7 @@ namespace TriggerSearch.Service
     {
         public GroupService(IUnitOfWork unitOfWork):base(unitOfWork)
         {
-     
+           
         }
         
     }

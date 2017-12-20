@@ -21,7 +21,7 @@ namespace TriggerSearch.Service
         {
             _unitOfWork = unitOfWork;
             _repo = unitOfWork.GetRepository<TEntity>();
-            RegisterHookFunction();
+            //RegisterHookFunction();
         }
 
        

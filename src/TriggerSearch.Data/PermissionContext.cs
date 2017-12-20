@@ -12,7 +12,7 @@ namespace TriggerSearch.Data
     public class PermissionContext : HookDbContext
     {
         private string _sqlGetNow = "now()";
-        public PermissionContext(DbContextOptions<PermissionContext> options):base(options)
+        public PermissionContext(DbContextOptions<PermissionContext> options, IHookFunction hookFunction):base(options, hookFunction)
         { 
         }
         public DbSet<Group> Groups { set; get; }
