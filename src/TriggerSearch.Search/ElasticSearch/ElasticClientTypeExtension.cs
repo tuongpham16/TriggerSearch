@@ -7,6 +7,6 @@ namespace TriggerSearch.Search.ElasticSearch
 {
     public static class ElasticClientTypeExtension
     {
-        //public static IElasticClient AddType(this ConnectionSettings )
+        
     }
 }

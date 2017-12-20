@@ -21,7 +21,8 @@ namespace TriggerSearch.Search.ElasticSearch
             _client.EnsureIndex(_client.ConnectionSettings.DefaultIndex);
             services.AddSingleton(_client);
             services.AddScoped<ISearchService, SearchService>();
-            MapTypeSearch.AddMap<Group>(_client.ConnectionSettings.DefaultIndex, "group", "ID");
+
+            _client.Mapping<Group>("group", "ID");
             return services;
         }
 

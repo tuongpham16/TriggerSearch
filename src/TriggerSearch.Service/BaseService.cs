@@ -21,8 +21,7 @@ namespace TriggerSearch.Service
         public BaseService(IUnitOfWork unitOfWork, ISearchService searchService):this(unitOfWork)
         {
             _searchService = searchService;
-            Func<HookTrackingResult, object> getData = GetChange;
-            _repo.HookFunction(getData);
+            _repo.HookFunction(TriggerSave);
         }
 
         public BaseService(IUnitOfWork unitOfWork)
@@ -32,7 +31,7 @@ namespace TriggerSearch.Service
             
         }
 
-        public virtual  async Task<object> GetChange(HookTrackingResult entities)
+        public virtual  async Task<object> TriggerSave(HookTrackingResult entities)
         {
             if(entities.EntriesAdded.Count > 0)
             {

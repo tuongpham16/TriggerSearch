@@ -4,17 +4,11 @@ using System.Text;
 
 namespace TriggerSearch.Search
 {
-    public static class MapTypeSearch
+    internal static class MapTypeSearch
     {
-        private static string _defaultIndex;
+        internal static Dictionary<string, DocumentInfo> Map { private set; get; } = new Dictionary<string, DocumentInfo>();
 
-        public static Dictionary<string, DocumentInfo> Map { private set; get; } = new Dictionary<string, DocumentInfo>();
-        public static void SetDefaultIndex(string indexName)
-        {
-            _defaultIndex = indexName;
-        }
-
-        public static void AddMap<TEntity>(string index, string type, string keyPropertyName)
+        internal static void AddMap<TEntity>(string index, string type, string keyPropertyName)
         {
             var fullName = typeof(TEntity).FullName;
             Map.Add(fullName, new DocumentInfo()
@@ -23,10 +17,6 @@ namespace TriggerSearch.Search
                 KeyPropertyName = keyPropertyName,
                 Type = type
             });
-        }
-        public static void AddMap<TEntity>(string type, string keyPropertyName)
-        {
-            AddMap<TEntity>(_defaultIndex, type, keyPropertyName);
         }
     }
 }
