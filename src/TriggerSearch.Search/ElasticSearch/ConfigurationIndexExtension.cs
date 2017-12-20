@@ -5,6 +5,7 @@ using Nest;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TriggerSearch.Data.Models;
 
 namespace TriggerSearch.Search.ElasticSearch
 {
@@ -19,6 +20,8 @@ namespace TriggerSearch.Search.ElasticSearch
             _client = new ElasticClient(settings);
             _client.EnsureIndex(_client.ConnectionSettings.DefaultIndex);
             services.AddSingleton(_client);
+            services.AddScoped<ISearchService, SearchService>();
+            MapTypeSearch.AddMap<Group>(_client.ConnectionSettings.DefaultIndex, "group", "ID");
             return services;
         }
 
