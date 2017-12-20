@@ -27,7 +27,6 @@ namespace TriggerSearch.Search
                 KeyPropertyName = keyPropertyName,
                 Type = type,
                 EntityTarget = typeof(TEntityTarget)
-
             });
         }
     }

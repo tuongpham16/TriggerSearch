@@ -21,15 +21,17 @@ namespace TriggerSearch.Search.ElasticSearch
             _client = new ElasticClient(settings);
             _client.EnsureIndex(_client.ConnectionSettings.DefaultIndex);
             services.AddSingleton(_client);
-            services.AddScoped<ISearchService, SearchService>();
+            services.AddScoped<IIndexService, IndexService>();
+            services.AddScoped<ITriggerService, TriggerService>();
 
+            SearchServiceLocator.SetServiceLocator(services.BuildServiceProvider());
             _client.Mapping<Group, GroupDTO>("groupdto", "ID");
             return services;
         }
 
         public static Configuration GetElasticConfiguration(this IConfiguration config)
         {
-            var elasticConfig= new Configuration();
+            var elasticConfig = new Configuration();
             config.GetSection("ElasticSearch").Bind(elasticConfig);
             return elasticConfig;
         }

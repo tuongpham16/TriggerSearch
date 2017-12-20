@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace TriggerSearch.Search
 {
-   public interface ISearchService
+   public interface IIndexService
     {
         Task IndexAsync<TEntity>(TEntity entity) where TEntity : class;
 

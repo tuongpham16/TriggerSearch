@@ -17,12 +17,10 @@ namespace TriggerSearch.Web.Controllers
     {
         private IGroupService _groupService;
         private IUserService _userService;
-        private ISearchService _searchService;
-        public GroupController(IGroupService groupService, IUserService userService, ISearchService searchService)
+        public GroupController(IGroupService groupService, IUserService userService)
         {
             _groupService = groupService;
             _userService = userService;
-            _searchService = searchService;
         }
 
         public async Task<IActionResult> Add()

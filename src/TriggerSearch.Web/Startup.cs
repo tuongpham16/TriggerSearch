@@ -45,9 +45,8 @@ namespace TriggerSearch.Web
             services.AddUnitOfWork<PermissionContext>();
             services.AddScoped<IGroupService, GroupService>();
             services.AddScoped<IUserService, UserService>();
+            
             services.AddMvc();
-
-
 
             services.AddElasticSearchClient(Configuration.GetElasticConfiguration());
         }
@@ -58,7 +57,6 @@ namespace TriggerSearch.Web
             context.Database.Migrate();
             Seeding seeding = new Seeding(context);
             seeding.Init();
-
 
             if (env.IsDevelopment())
             {

@@ -1,16 +1,19 @@
 ﻿using Nest;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace TriggerSearch.Search
 {
-    public class SearchService : ISearchService
+    public class IndexService : IIndexService
     {
         private readonly IElasticClient _elasticClient;
-        public SearchService(IElasticClient elasticClient)
+        public IndexService(IElasticClient elasticClient)
         {
             _elasticClient = elasticClient;
         }
@@ -30,20 +33,18 @@ namespace TriggerSearch.Search
             }
         }
 
-
         private async Task DeleteAsync<TEntity>(TEntity entity, DocumentInfo docInfo) where TEntity : class
         {
-                object entitySave = entity;
-                if (docInfo.EntityTarget != null)
-                {
-                    entitySave = Entity2Target(entity, docInfo.EntityTarget);
-                }
+            object entitySave = entity;
+            if (docInfo.EntityTarget != null)
+            {
+                entitySave = Entity2Target(entity, docInfo.EntityTarget);
+            }
 
-                var id = entitySave.GetType().GetProperty(docInfo.KeyPropertyName).GetValue(entitySave, null);
-                await _elasticClient.DeleteAsync(DocumentPath<TEntity>.Id(Convert.ToString(id)));
-            
+            var id = entitySave.GetType().GetProperty(docInfo.KeyPropertyName).GetValue(entitySave, null);
+            await _elasticClient.DeleteAsync(DocumentPath<TEntity>.Id(Convert.ToString(id)));
+
         }
-
 
         public async Task IndexAsync<TEntity>(TEntity entity) where TEntity : class
         {
@@ -63,8 +64,6 @@ namespace TriggerSearch.Search
             }
         }
 
-
-
         public async Task UpdateAsync<TEntity>(TEntity entity) where TEntity : class
         {
             if (MapTypeSearch.Map.ContainsKey(entity.GetType().FullName))
@@ -80,8 +79,6 @@ namespace TriggerSearch.Search
             }
         }
 
-
-
         private async Task UpdateAsync<TEntity>(TEntity entity, DocumentInfo docInfo) where TEntity : class
         {
             var id = entity.GetType().GetProperty(docInfo.KeyPropertyName).GetValue(entity, null);
@@ -94,11 +91,28 @@ namespace TriggerSearch.Search
 
         private object Entity2Target<TEntity>(TEntity entity, Type target)
         {
-            //Call Method or implicit for convert Entity Db to Search Enity 
             object entityTarget = Activator.CreateInstance(target);
-            entityTarget = entityTarget.GetType().GetMethod("FromEntity").Invoke(entityTarget, new object[] { entity });
+            return CastEntity(entity, entityTarget);
+        }
+
+        private TEntityTarget CastEntity<TEntity, TEntityTarget>(TEntity entity, TEntityTarget entityTarget)
+        {
+
+            var conversionOperator = entityTarget.GetType().GetMethods(BindingFlags.Static | BindingFlags.Public)
+                                    .Where(m => m.Name == "op_Implicit")
+                                    .Where(m => m.ReturnType == entityTarget.GetType())
+                                    .Where(m => m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == entity.GetType())
+                                    .FirstOrDefault();
+
+            if (conversionOperator != null)
+                entityTarget = (TEntityTarget)conversionOperator.Invoke(null, new object[] { entity });
+            else
+                throw new Exception($"{entityTarget.GetType().FullName} has no implicit method to {entity.GetType().FullName}");
+
             return entityTarget;
         }
+
+
 
     }
 }

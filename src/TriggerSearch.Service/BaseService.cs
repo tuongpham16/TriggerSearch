@@ -16,47 +16,19 @@ namespace TriggerSearch.Service
     {
         protected readonly IUnitOfWork _unitOfWork;
         protected readonly IRepository<TEntity> _repo;
-        protected readonly ISearchService _searchService;
-
-        public BaseService(IUnitOfWork unitOfWork, ISearchService searchService):this(unitOfWork)
-        {
-            _searchService = searchService;
-            _repo.HookFunction(TriggerSave);
-        }
 
         public BaseService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
             _repo = unitOfWork.GetRepository<TEntity>();
-            
+            RegisterHookFunction();
         }
 
-        public virtual  async Task<object> TriggerSave(HookTrackingResult entities)
+       
+        private void RegisterHookFunction()
         {
-            if(entities.EntriesAdded.Count > 0)
-            {
-                foreach (var entry in entities.EntriesAdded)
-                {
-                    await _searchService.IndexAsync(entry.Entity);
-                }
-            }
-
-            if (entities.EntriesModified.Count > 0)
-            {
-                foreach (var entry in entities.EntriesModified)
-                {
-                   await  _searchService.UpdateAsync(entry.Entity);
-                }
-            }
-
-            if (entities.EntriesDeleted.Count > 0)
-            {
-                foreach (var entry in entities.EntriesDeleted)
-                {
-                    await _searchService.DeleteAsync(entry.Entity);
-                }
-            }
-            return string.Empty;
+            var indexService = SearchServiceLocator.GetService<ITriggerService>();
+            _repo.HookFunction(indexService.TriggerSave);
         }
 
         public async Task Add(TEntity entity)
