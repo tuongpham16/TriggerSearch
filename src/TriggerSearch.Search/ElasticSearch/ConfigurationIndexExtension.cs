@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using TriggerSearch.Data.Models;
+using TriggerSearch.Search.DTO;
 
 namespace TriggerSearch.Search.ElasticSearch
 {
@@ -22,7 +23,7 @@ namespace TriggerSearch.Search.ElasticSearch
             services.AddSingleton(_client);
             services.AddScoped<ISearchService, SearchService>();
 
-            _client.Mapping<Group>("group", "ID");
+            _client.Mapping<Group, GroupDTO>("groupdto", "ID");
             return services;
         }
 

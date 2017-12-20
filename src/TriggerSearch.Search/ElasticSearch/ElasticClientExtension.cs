@@ -20,6 +20,18 @@ namespace TriggerSearch.Search.ElasticSearch
             return client;
         }
 
+        public static IElasticClient Mapping<TEntity, TEntityTarget>(this IElasticClient client, string index, string type, string keyPropertyName) where TEntity : class
+        {
+            MapTypeSearch.AddMap<TEntity, TEntityTarget>(index, type, keyPropertyName);
+            return client;
+        }
+
+        public static IElasticClient Mapping<TEntity, TEntityTarget>(this IElasticClient client, string type, string keyPropertyName) where TEntity : class
+        {
+            MapTypeSearch.AddMap<TEntity, TEntityTarget>(client.ConnectionSettings.DefaultIndex, type, keyPropertyName);
+            return client;
+        }
+
         public static void EnsureIndex(this IElasticClient client, string indexName)
         {
             var isExist = client.IndexExists(indexName).Exists;

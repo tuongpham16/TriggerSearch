@@ -9,5 +9,6 @@ namespace TriggerSearch.Search
         public string Index { get; set; }
         public string Type { get; set; }
         public string KeyPropertyName { get; set; }
+        public Type EntityTarget { get; set; }
     }
 }
