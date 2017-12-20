@@ -34,9 +34,9 @@ namespace TriggerSearch.Core
             _dbSet = _dbContext.Set<TEntity>();
         }
 
-        public void HookFunction(Func<HookTrackingResult, object> getData)
+        public void HookFunction(Func<HookTrackingResult, object> hookfunc)
         {
-            _dbContext.AddEvent(getData);
+            _dbContext.AddEvent(hookfunc);
         }
 
         public IQueryable<TEntity> Entities => _dbSet;
