@@ -7,15 +7,22 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace TriggerSearch.Search
 {
     public class IndexService : IIndexService
     {
         private readonly IElasticClient _elasticClient;
+        private DbContext _dbContext;
         public IndexService(IElasticClient elasticClient)
         {
             _elasticClient = elasticClient;
+        }
+
+        public void SetDbContext(DbContext context)
+        {
+            _dbContext = context;
         }
 
         public async Task DeleteAsync<TEntity>(TEntity entity) where TEntity : class
@@ -69,6 +76,22 @@ namespace TriggerSearch.Search
             if (MapTypeSearch.Map.ContainsKey(entity.GetType().FullName))
             {
                 var docInfo = MapTypeSearch.Map[entity.GetType().FullName];
+                if (docInfo.References != null && docInfo.References.Length > 0)
+                {
+                    foreach (var property in docInfo.References)
+                    {
+                        _dbContext.Entry(entity).Reference(property).Load();
+                    }
+                }
+
+                if (docInfo.Collections != null && docInfo.Collections.Length > 0)
+                {
+                    foreach (var property in docInfo.Collections)
+                    {
+                        _dbContext.Entry(entity).Collection(property).Load();
+                    }
+                }
+
                 object entitySave = entity;
                 if (docInfo.EntityTarget != null)
                 {
@@ -111,7 +134,6 @@ namespace TriggerSearch.Search
 
             return entityTarget;
         }
-
 
 
     }

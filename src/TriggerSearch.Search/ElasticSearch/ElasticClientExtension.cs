@@ -8,27 +8,22 @@ namespace TriggerSearch.Search.ElasticSearch
 {
     public static class ConnectionSettingsExtension
     {
-        public static IElasticClient Mapping<TEntity>(this IElasticClient client, string index, string type, string keyPropertyName) where TEntity : class
+        public static IElasticClient Mapping<TEntity>(this IElasticClient client, Func<DocumentInfo<TEntity>, DocumentInfo> documentInfo) where TEntity : class
         {
-            MapTypeSearch.AddMap<TEntity>(index, type, keyPropertyName);
+            var doc = documentInfo(new DocumentInfo<TEntity>());
+            if (string.IsNullOrEmpty(doc.Index))
+                doc.Index = client.ConnectionSettings.DefaultIndex;
+            MapTypeSearch.AddMap<TEntity>(doc);
             return client;
         }
 
-        public static IElasticClient Mapping<TEntity>(this IElasticClient client, string type, string keyPropertyName) where TEntity : class
+        public static IElasticClient Mapping<TEntity, TEntityTarget>(this IElasticClient client, Func<DocumentInfo<TEntity>, DocumentInfo> documentInfo) where TEntity : class
         {
-            MapTypeSearch.AddMap<TEntity>(client.ConnectionSettings.DefaultIndex, type, keyPropertyName);
-            return client;
-        }
-
-        public static IElasticClient Mapping<TEntity, TEntityTarget>(this IElasticClient client, string index, string type, string keyPropertyName) where TEntity : class
-        {
-            MapTypeSearch.AddMap<TEntity, TEntityTarget>(index, type, keyPropertyName);
-            return client;
-        }
-
-        public static IElasticClient Mapping<TEntity, TEntityTarget>(this IElasticClient client, string type, string keyPropertyName) where TEntity : class
-        {
-            MapTypeSearch.AddMap<TEntity, TEntityTarget>(client.ConnectionSettings.DefaultIndex, type, keyPropertyName);
+            var doc = documentInfo(new DocumentInfo<TEntity>());
+            if (string.IsNullOrEmpty(doc.Index))
+                doc.Index = client.ConnectionSettings.DefaultIndex;
+            doc.EntityTarget = typeof(TEntityTarget);
+            MapTypeSearch.AddMap<TEntity>(doc);
             return client;
         }
 
