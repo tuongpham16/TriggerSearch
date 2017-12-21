@@ -17,10 +17,9 @@ namespace TriggerSearch.Search
             _hookFunction.TriggerSaveEvent += IndexData;
         }
 
-        public void IndexData(object obj, EventArgs e)
+        public void IndexData(HookTrackingResult data)
         {
-            var result = (HookTrackingResult)obj;
-            _indexService.TriggerSave(result);
+            _indexService.TriggerSave(data);
         }
     }
 }

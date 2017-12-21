@@ -5,7 +5,5 @@ using System.Text;
 namespace TriggerSearch.Search
 {
     public interface IExecuteTrigger
-    {
-        void IndexData(object obj, EventArgs e);
-    }
+    {}
 }
