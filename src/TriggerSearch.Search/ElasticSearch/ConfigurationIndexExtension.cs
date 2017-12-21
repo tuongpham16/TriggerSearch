@@ -26,8 +26,9 @@ namespace TriggerSearch.Search.ElasticSearch
             services.AddScoped<ITriggerService, TriggerService>();
             IHookFunction hookFunction = new HookFunction();
             services.AddSingleton(hookFunction);
-            var exeTrigger = new ExecuteTrigger(hookFunction);
-
+            services.AddSingleton<IExecuteTrigger, ExecuteTrigger>();
+            
+            services.BuildServiceProvider().GetService<IExecuteTrigger>();
             SearchServiceLocator.SetServiceLocator(services.BuildServiceProvider());
             _client.Mapping<Group, GroupDTO>("groupdto", "ID");
             return services;
