@@ -50,7 +50,8 @@ namespace TriggerSearch.Search
 
             var id = entitySave.GetType().GetProperty(docInfo.KeyPropertyName).GetValue(entitySave, null);
             await _elasticClient.DeleteAsync(DocumentPath<TEntity>.Id(Convert.ToString(id)));
-
+            if (docInfo.RefeshAfterDeleted)
+                await _elasticClient.RefreshAsync(docInfo.Index);
         }
 
         public async Task IndexAsync<TEntity>(TEntity entity) where TEntity : class
@@ -68,6 +69,8 @@ namespace TriggerSearch.Search
                 await _elasticClient.IndexAsync(entitySave, i => i.Index(docInfo.Index)
                                                               .Type(docInfo.Type)
                                                               .Id(Convert.ToString(id)));
+                if (docInfo.RefeshAfterIndex)
+                    await _elasticClient.RefreshAsync(docInfo.Index);
             }
         }
 
@@ -110,6 +113,8 @@ namespace TriggerSearch.Search
                 .Type(docInfo.Type)
                 .DocAsUpsert(true)
                 .Doc(entity));
+            if (docInfo.RefeshAfterUpdate)
+                await _elasticClient.RefreshAsync(docInfo.Index);
         }
 
         private object Entity2Target<TEntity>(TEntity entity, Type target)

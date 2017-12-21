@@ -40,6 +40,23 @@ namespace TriggerSearch.Search
             EntityTarget = typeof(TEntityTarget);
             return this;
         }
+
+        public DocumentInfo<TEntity> AutoRefeshAfterIndex(bool auto)
+        {
+            RefeshAfterIndex = auto;
+            return this;
+        }
+
+        public DocumentInfo<TEntity> AutoRefeshAfterUpdate(bool auto)
+        {
+            RefeshAfterUpdate = auto;
+            return this;
+        }
+        public DocumentInfo<TEntity> AutoRefeshAfterDeleted(bool auto)
+        {
+            RefeshAfterDeleted = auto;
+            return this;
+        }
     }
     public class DocumentInfo
     {
@@ -48,7 +65,9 @@ namespace TriggerSearch.Search
         public string KeyPropertyName { get; set; }
         public Type EntityTarget { get; set; }
         public string[] References { get; set; }
-
         public string[] Collections { get; set; }
+        public bool RefeshAfterIndex { get; set; }
+        public bool RefeshAfterUpdate { get; set; }
+        public bool RefeshAfterDeleted { get; set; }
     }
 }
