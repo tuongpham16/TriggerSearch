@@ -29,7 +29,6 @@ namespace TriggerSearch.Search.ElasticSearch
             services.AddSingleton<IExecuteTrigger, ExecuteTrigger>();
             
             services.BuildServiceProvider().GetService<IExecuteTrigger>();
-            SearchServiceLocator.SetServiceLocator(services.BuildServiceProvider());
             _client.Mapping<Group, GroupDTO>("groupdto", "ID");
             return services;
         }
