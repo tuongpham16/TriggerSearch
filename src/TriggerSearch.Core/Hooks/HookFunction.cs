@@ -7,10 +7,10 @@ namespace TriggerSearch.Core.Hooks
 {
     public class HookFunction : IHookFunction
     {
-        public event EventHandler TriggerSaveEvent;
+        public event HookTrackingEventHandler TriggerSaveEvent;
         public async Task<object> TriggerSave(HookTrackingResult entities)
         {
-            TriggerSaveEvent(entities, new EventArgs());
+            TriggerSaveEvent(entities);
             await Task.CompletedTask;
             return string.Empty;
         }

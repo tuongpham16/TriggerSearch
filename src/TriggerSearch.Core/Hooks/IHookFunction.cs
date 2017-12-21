@@ -7,7 +7,7 @@ namespace TriggerSearch.Core.Hooks
 {
     public interface IHookFunction
     {
-        event EventHandler TriggerSaveEvent;
+        event HookTrackingEventHandler TriggerSaveEvent;
         Task<object> TriggerSave(HookTrackingResult entities);
     }
 }
