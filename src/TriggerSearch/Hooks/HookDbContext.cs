@@ -10,11 +10,13 @@ namespace TriggerSearch.Core.Hooks
 {
     public class HookDbContext : DbContext
     {
-        private Func<HookTrackingResult, object> _func;
-        public HookDbContext(DbContextOptions options) : base(options)
-        { }
+        private Func<HookTrackingResult, Task<object>> _func;
+        public HookDbContext(DbContextOptions options, IHookFunction hookFunction) : base(options)
+        {
+            _func = hookFunction.TriggerSave;
+        }
 
-        public void AddEvent(Func<HookTrackingResult, object> func)
+        public void AddEvent(Func<HookTrackingResult, Task<object>> func)
         {
             _func = func;
         }
@@ -27,11 +29,11 @@ namespace TriggerSearch.Core.Hooks
             return result;
         }
 
-        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken))
         {
             var changed = GetChangeTracking();
-            var result = base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-            _func?.Invoke(changed);
+            var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            await _func?.Invoke(changed);
             return result;
         }
 
@@ -41,6 +43,7 @@ namespace TriggerSearch.Core.Hooks
                 return null;
 
             var result = new HookTrackingResult();
+            result.Context = this;
             var entities = ChangeTracker.Entries();
 
             foreach (var entity in entities)

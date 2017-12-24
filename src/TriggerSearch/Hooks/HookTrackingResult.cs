@@ -1,4 +1,5 @@
-﻿using System;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,5 +11,6 @@ namespace TriggerSearch.Core.Hooks
         public List<HookedEntityEntry> EntriesModified { get; set; } = new List<HookedEntityEntry>();
         public List<HookedEntityEntry> EntriesDeleted { get; set; } = new List<HookedEntityEntry>();
 
+        public DbContext Context { get; set; }
     }
 }

@@ -18,5 +18,15 @@ namespace TriggerSearch.Search.DTO
                 Title = group.Title
             };
         }
+
+
+        public static implicit operator GroupDTO(Group group)
+        {
+            return new GroupDTO()
+            {
+                ID = group.ID,
+                Title = group.Title
+            };
+        }
     }
 }
