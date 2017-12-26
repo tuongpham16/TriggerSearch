@@ -19,5 +19,6 @@ namespace TriggerSearch
         bool RefeshAfterDeleted { get;}
         BehaviorChange LoadReferenceBehavior { get;}
         BehaviorChange LoadQueryBehavior { get; }
+        HashSet<MakeMethod> MakeMethods { get; }
     }
 }

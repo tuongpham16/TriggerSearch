@@ -48,7 +48,7 @@ namespace TriggerSearch.Web.Controllers
 
             //await _userService.Add(newUser);
             await _groupService.Update(currentGroup);
-            //await _groupService.Delete(currentGroup);
+            await _groupService.Delete(currentGroup);
             return Json(currentGroup);
         }
     }

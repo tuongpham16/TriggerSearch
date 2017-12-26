@@ -6,11 +6,22 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Collections;
 using System.Reflection;
+using Nest;
+using System.Threading.Tasks;
 
 namespace TriggerSearch.Search
 {
     public class DocumentInfo<TEntity> : IDocumentInfo
     {
+        public DocumentInfo()
+        {
+            MakeMethods = new HashSet<MakeMethod>()
+            {
+                MakeMethod.Update,
+                MakeMethod.Insert,
+                MakeMethod.Delete
+            };
+        }
         public DocumentInfo<TEntity> SetIndex(string index)
         {
             Index = index;
@@ -81,6 +92,30 @@ namespace TriggerSearch.Search
             return this;
         }
 
+        public DocumentInfo<TEntity> SetMethodIndex(Func<IElasticClient, TEntity, Task> method)
+        {
+            IndexMethod = method;
+            return this;
+        }
+
+        public DocumentInfo<TEntity> SetMethodUpdate(Func<IElasticClient, TEntity, Task> method)
+        {
+            UpdateMethod = method;
+            return this;
+        }
+
+        public DocumentInfo<TEntity> SetMethodDelete(Func<IElasticClient, TEntity, Task> method)
+        {
+            DeleteMethod = method;
+            return this;
+        }
+
+        public DocumentInfo<TEntity> SetMakeMethod(params MakeMethod[] makeMethods)
+        {
+            MakeMethods = new HashSet<MakeMethod>(makeMethods);
+            return this;
+        }
+
         public IBuildQuery Query { get; set; }
 
         public string Index { get; internal set; }
@@ -92,7 +127,12 @@ namespace TriggerSearch.Search
         public bool RefeshAfterIndex { get; private set; }
         public bool RefeshAfterUpdate { get; private set; }
         public bool RefeshAfterDeleted { get; private set; }
-        public BehaviorChange LoadReferenceBehavior { get;private set; }
+        public BehaviorChange LoadReferenceBehavior { get; private set; }
         public BehaviorChange LoadQueryBehavior { get; private set; }
+        public Func<IElasticClient, TEntity, Task> IndexMethod { get; private set; }
+        public Func<IElasticClient, TEntity, Task> UpdateMethod { get; private set; }
+        public Func<IElasticClient, TEntity, Task> DeleteMethod { get; private set; }
+        public HashSet<MakeMethod> MakeMethods { get; private set; }
+
     }
 }

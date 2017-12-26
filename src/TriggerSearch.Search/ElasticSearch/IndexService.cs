@@ -46,6 +46,11 @@ namespace TriggerSearch.Search
            .First();
 
         protected internal static readonly MethodInfo DeleteAsyncMethodInfo
+       = typeof(IndexService)
+       .GetTypeInfo().GetDeclaredMethods(nameof(DeleteAsync))
+       .Single(m => m.GetParameters().Length == 2);
+
+        protected internal static readonly MethodInfo CommitDeleteAsyncMethodInfo
           = typeof(IndexService)
           .GetTypeInfo().GetDeclaredMethods(nameof(CommitDeleteAsync))
           .First();
@@ -58,24 +63,43 @@ namespace TriggerSearch.Search
             if (MapTypeSearch.Map.ContainsKey(entity.GetType().FullName))
             {
                 var docInfo = MapTypeSearch.Map[entity.GetType().FullName];
-                var id = entity.GetType().GetProperty(docInfo.KeyProperty.Name).GetValue(entity, null);
+                if (docInfo.MakeMethods.Contains(MakeMethod.Delete))
+                {
+                    MethodInfo genericMethod = DeleteAsyncMethodInfo.MakeGenericMethod(entity.GetType());
+                    Task task = (Task)genericMethod.Invoke(this, new object[] { entity, docInfo });
+                    await task;
+                }
+            }
+        }
 
+        private async Task DeleteAsync<TEntity>(TEntity entity, IDocumentInfo docInfo)
+        {
+            var docInfoEntity = (DocumentInfo<TEntity>)docInfo;
+            if (docInfoEntity.DeleteMethod != null)
+            {
+                await docInfoEntity.DeleteMethod(_elasticClient, entity);
+            }
+            else
+            {
+                var id = entity.GetType().GetProperty(docInfo.KeyProperty.Name).GetValue(entity, null);
                 object entitySave = entity;
                 if (docInfo.EntityTarget != null)
                 {
                     entitySave = Entity2Target(entity, docInfo.EntityTarget);
                 }
-                MethodInfo genericMethod = DeleteAsyncMethodInfo.MakeGenericMethod(entitySave.GetType());
+
+                MethodInfo genericMethod = CommitDeleteAsyncMethodInfo.MakeGenericMethod(entitySave.GetType());
                 Task task = (Task)genericMethod.Invoke(this, new object[] { entitySave, docInfo, id });
                 await task;
             }
+
         }
 
         private async Task CommitDeleteAsync<TEntity>(TEntity entity, IDocumentInfo docInfo, object id) where TEntity : class
         {
             await _elasticClient.DeleteAsync(DocumentPath<TEntity>.Id(Convert.ToString(id)),
-                d => d.Index(docInfo.Index)
-                      .Type(docInfo.Type));
+                    d => d.Index(docInfo.Index)
+                          .Type(docInfo.Type));
             if (docInfo.RefeshAfterDeleted)
                 await _elasticClient.RefreshAsync(docInfo.Index);
         }
@@ -87,57 +111,68 @@ namespace TriggerSearch.Search
             if (MapTypeSearch.Map.ContainsKey(entity.GetType().FullName))
             {
                 var docInfo = MapTypeSearch.Map[entity.GetType().FullName];
-
-                MethodInfo genericMethod = IndexAsyncMethodInfo.MakeGenericMethod(entity.GetType());
-                Task task = (Task)genericMethod.Invoke(this, new object[] { entity, docInfo });
-                await task;
+                if (docInfo.MakeMethods.Contains(MakeMethod.Insert))
+                {
+                    MethodInfo genericMethod = IndexAsyncMethodInfo.MakeGenericMethod(entity.GetType());
+                    Task task = (Task)genericMethod.Invoke(this, new object[] { entity, docInfo });
+                    await task;
+                }
             }
         }
 
         private async Task CommitIndexAsync<TEntity>(TEntity entity, IDocumentInfo docInfo) where TEntity : class
         {
-            var id = entity.GetType().GetProperty(docInfo.KeyProperty.Name).GetValue(entity, null);
 
-            if ((docInfo.LoadQueryBehavior == BehaviorChange.ALL
-                 || docInfo.LoadQueryBehavior == BehaviorChange.Insert)
-                 && docInfo.Query.IncludeExpression?.Count > 0)
+            var docInfoEntity = (DocumentInfo<TEntity>)docInfo;
+            if (docInfoEntity.IndexMethod != null)
             {
-                var expressions = docInfo.Query.IncludeExpression;
-                IQueryable<TEntity> source = _dbContext.Set<TEntity>();
+                await docInfoEntity.IndexMethod(_elasticClient, entity);
+            }
+            else
+            {
+                var id = entity.GetType().GetProperty(docInfo.KeyProperty.Name).GetValue(entity, null);
 
-                foreach (var expression in expressions)
+                if ((docInfo.LoadQueryBehavior == BehaviorChange.ALL
+                     || docInfo.LoadQueryBehavior == BehaviorChange.Insert)
+                     && docInfo.Query.IncludeExpression?.Count > 0)
                 {
-                    if (expression.Value == TypeExpression.Include)
-                        source = source.SearchInclude(expression.Key);
-                    else
-                        source = source.SearchThenInclude(expression.Key);
+                    var expressions = docInfo.Query.IncludeExpression;
+                    IQueryable<TEntity> source = _dbContext.Set<TEntity>();
+
+                    foreach (var expression in expressions)
+                    {
+                        if (expression.Value == TypeExpression.Include)
+                            source = source.SearchInclude(expression.Key);
+                        else
+                            source = source.SearchThenInclude(expression.Key);
+                    }
+
+                    entity = await source.FirstOrDefaultAsync(docInfo.KeyProperty.Name, id);
                 }
 
-                entity = await source.FirstOrDefaultAsync(docInfo.KeyProperty.Name, id);
-            }
 
-
-            if ((docInfo.LoadReferenceBehavior == BehaviorChange.ALL
-                || docInfo.LoadReferenceBehavior == BehaviorChange.Insert)
-                && docInfo.References?.Length > 0)
-            {
-                foreach (var property in docInfo.References)
+                if ((docInfo.LoadReferenceBehavior == BehaviorChange.ALL
+                    || docInfo.LoadReferenceBehavior == BehaviorChange.Insert)
+                    && docInfo.References?.Length > 0)
                 {
-                   await _dbContext.Entry(entity).Reference(property).LoadAsync();
+                    foreach (var property in docInfo.References)
+                    {
+                        await _dbContext.Entry(entity).Reference(property).LoadAsync();
+                    }
                 }
-            }
 
-            object entitySave = entity;
-            if (docInfo.EntityTarget != null)
-            {
-                entitySave = Entity2Target(entity, docInfo.EntityTarget);
-            }
+                object entitySave = entity;
+                if (docInfo.EntityTarget != null)
+                {
+                    entitySave = Entity2Target(entity, docInfo.EntityTarget);
+                }
 
-            await _elasticClient.IndexAsync(entitySave, i => i.Index(docInfo.Index)
-                                                          .Type(docInfo.Type)
-                                                          .Id(Convert.ToString(id)));
-            if (docInfo.RefeshAfterIndex)
-                await _elasticClient.RefreshAsync(docInfo.Index);
+                await _elasticClient.IndexAsync(entitySave, i => i.Index(docInfo.Index)
+                                                              .Type(docInfo.Type)
+                                                              .Id(Convert.ToString(id)));
+                if (docInfo.RefeshAfterIndex)
+                    await _elasticClient.RefreshAsync(docInfo.Index);
+            }
         }
 
         #endregion
@@ -149,62 +184,71 @@ namespace TriggerSearch.Search
             if (MapTypeSearch.Map.ContainsKey(entity.GetType().FullName))
             {
                 var docInfo = MapTypeSearch.Map[entity.GetType().FullName];
-
-                MethodInfo genericMethod = UpdateAsyncMethodInfo.MakeGenericMethod(entity.GetType());
-                Task task = (Task)genericMethod.Invoke(this, new object[] { entity, docInfo });
-                await task;
+                if (docInfo.MakeMethods.Contains(MakeMethod.Update))
+                {
+                    MethodInfo genericMethod = UpdateAsyncMethodInfo.MakeGenericMethod(entity.GetType());
+                    Task task = (Task)genericMethod.Invoke(this, new object[] { entity, docInfo });
+                    await task;
+                }
             }
         }
 
         private async Task UpdateAsync<TEntity>(TEntity entity, IDocumentInfo docInfo) where TEntity : class
         {
-            var id = entity.GetType().GetProperty(docInfo.KeyProperty.Name).GetValue(entity, null);
-
-            if ((docInfo.LoadQueryBehavior == BehaviorChange.ALL
-                || docInfo.LoadQueryBehavior == BehaviorChange.Insert)
-                && docInfo.Query.IncludeExpression?.Count > 0)
+            var docInfoEntity = (DocumentInfo<TEntity>)docInfo;
+            if (docInfoEntity.UpdateMethod != null)
             {
-                var expressions = docInfo.Query.IncludeExpression;
-                IQueryable<TEntity> source = _dbContext.Set<TEntity>();
-
-                foreach (var expression in expressions)
+                await docInfoEntity.UpdateMethod(_elasticClient, entity);
+            }
+            else
+            {
+                var id = entity.GetType().GetProperty(docInfo.KeyProperty.Name).GetValue(entity, null);
+                if ((docInfo.LoadQueryBehavior == BehaviorChange.ALL
+                    || docInfo.LoadQueryBehavior == BehaviorChange.Insert)
+                    && docInfo.Query.IncludeExpression?.Count > 0)
                 {
-                    if (expression.Value == TypeExpression.Include)
-                        source = source.SearchInclude(expression.Key);
-                    else
-                        source = source.SearchThenInclude(expression.Key);
-                }
-                entity = await source.FirstOrDefaultAsync(docInfo.KeyProperty.Name, id);
-            }
+                    var expressions = docInfo.Query.IncludeExpression;
+                    IQueryable<TEntity> source = _dbContext.Set<TEntity>();
 
-            if ((docInfo.LoadReferenceBehavior == BehaviorChange.ALL
-                || docInfo.LoadReferenceBehavior == BehaviorChange.Update)
-                && docInfo.References?.Length > 0)
-            {
-                foreach (var property in docInfo.References)
+                    foreach (var expression in expressions)
+                    {
+                        if (expression.Value == TypeExpression.Include)
+                            source = source.SearchInclude(expression.Key);
+                        else
+                            source = source.SearchThenInclude(expression.Key);
+                    }
+                    entity = await source.FirstOrDefaultAsync(docInfo.KeyProperty.Name, id);
+                }
+
+                if ((docInfo.LoadReferenceBehavior == BehaviorChange.ALL
+                    || docInfo.LoadReferenceBehavior == BehaviorChange.Update)
+                    && docInfo.References?.Length > 0)
                 {
-                    await _dbContext.Entry(entity).Reference(property).LoadAsync();
+                    foreach (var property in docInfo.References)
+                    {
+                        await _dbContext.Entry(entity).Reference(property).LoadAsync();
+                    }
                 }
-            }
 
-            if (docInfo.Collections?.Length > 0)
-            {
-                foreach (var property in docInfo.Collections)
+                if (docInfo.Collections?.Length > 0)
                 {
-                    await _dbContext.Entry(entity).Collection(property).LoadAsync();
+                    foreach (var property in docInfo.Collections)
+                    {
+                        await _dbContext.Entry(entity).Collection(property).LoadAsync();
+                    }
                 }
+
+                object entitySave = entity;
+                if (docInfo.EntityTarget != null)
+                {
+                    entitySave = Entity2Target(entity, docInfo.EntityTarget);
+                }
+
+                MethodInfo genericMethod = CommitUpdateAsyncMethodInfo.MakeGenericMethod(entitySave.GetType());
+                Task task = (Task)genericMethod.Invoke(this, new object[] { entitySave, docInfo, id });
+                await task;
+
             }
-
-            object entitySave = entity;
-            if (docInfo.EntityTarget != null)
-            {
-                entitySave = Entity2Target(entity, docInfo.EntityTarget);
-            }
-
-
-            MethodInfo genericMethod = CommitUpdateAsyncMethodInfo.MakeGenericMethod(entitySave.GetType());
-            Task task = (Task)genericMethod.Invoke(this, new object[] { entitySave, docInfo, id });
-            await task;
         }
 
         private async Task CommitUpdateAsync<TEntity>(TEntity entity, IDocumentInfo docInfo, object id) where TEntity : class

@@ -5,6 +5,7 @@ using Nest;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using TriggerSearch.Core.Hooks;
 using TriggerSearch.Data.Models;
 using TriggerSearch.Expressions;
@@ -32,6 +33,8 @@ namespace TriggerSearch.Search.ElasticSearch
 
             _client.Mapping<Group, GroupDTO>(s => s.SetType("group")
                                              .SetKeyProperty(item => item.ID)
+                                             .SetMethodDelete(DeleteGroupIndex)
+                                             .SetMakeMethod(MakeMethod.Delete, MakeMethod.Insert)
                                              .SetQuery(QueryExpression.BuildQuery<Group>()
                                                         .Include(item => item.GroupRoles)
                                                         .ThenInclude(item => item.Role)
@@ -45,6 +48,13 @@ namespace TriggerSearch.Search.ElasticSearch
             var elasticConfig = new Configuration();
             config.GetSection("ElasticSearch").Bind(elasticConfig);
             return elasticConfig;
+        }
+
+        private static async Task DeleteGroupIndex(IElasticClient client, Group group)
+        {
+            await client.DeleteAsync(DocumentPath<GroupDTO>.Id(Convert.ToString(group.ID)),
+                   d => d.Index(client.ConnectionSettings.DefaultIndex)
+                         .Type("group"));
         }
 
         public static void EnsureIndex(IElasticClient client, string indexName)
