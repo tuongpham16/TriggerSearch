@@ -10,5 +10,6 @@ namespace TriggerSearch.Data.Models
     {
         public Guid GroupID { get; set; }
         public Guid RoleID { get; set; }
+        public Role Role { get; set; }
     }
 }

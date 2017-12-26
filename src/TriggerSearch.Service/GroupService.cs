@@ -11,7 +11,7 @@ namespace TriggerSearch.Service
 {
     public class GroupService : BaseService<Group>,  IGroupService
     {
-        public GroupService(IUnitOfWork unitOfWork, ISearchService searchService):base(unitOfWork, searchService)
+        public GroupService(IUnitOfWork unitOfWork):base(unitOfWork)
         {
      
         }

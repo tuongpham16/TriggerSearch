@@ -20,7 +20,7 @@ namespace TriggerSearch.Core
     {
 
 
-        void HookFunction(Func<HookTrackingResult, object> getData);
+        void HookFunction(Func<HookTrackingResult, Task<object>> getData);
         IQueryable<TEntity> Entities { get; }
         #region Get paged list
 

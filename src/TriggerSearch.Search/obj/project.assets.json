@@ -946,11 +946,27 @@
           "lib/netstandard1.3/System.Xml.XmlDocument.dll": {}
         }
       },
+      "TriggerSearch/1.0.0": {
+        "type": "project",
+        "framework": ".NETStandard,Version=v2.0",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "1.1.2",
+          "NEST": "5.5.0",
+          "Newtonsoft.Json": "10.0.3"
+        },
+        "compile": {
+          "bin/placeholder/TriggerSearch.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TriggerSearch.dll": {}
+        }
+      },
       "TriggerSearch.Core/1.0.0": {
         "type": "project",
         "framework": ".NETStandard,Version=v2.0",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "2.0.0"
+          "Microsoft.EntityFrameworkCore": "2.0.0",
+          "TriggerSearch": "1.0.0"
         },
         "compile": {
           "bin/placeholder/TriggerSearch.Core.dll": {}
@@ -3905,6 +3921,11 @@
         "system.xml.xmldocument.4.3.0.nupkg.sha512",
         "system.xml.xmldocument.nuspec"
       ]
+    },
+    "TriggerSearch/1.0.0": {
+      "type": "project",
+      "path": "../TriggerSearch/TriggerSearch.csproj",
+      "msbuildProject": "../TriggerSearch/TriggerSearch.csproj"
     },
     "TriggerSearch.Core/1.0.0": {
       "type": "project",

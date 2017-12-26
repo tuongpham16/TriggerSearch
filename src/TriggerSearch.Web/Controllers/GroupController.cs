@@ -17,27 +17,26 @@ namespace TriggerSearch.Web.Controllers
     {
         private IGroupService _groupService;
         private IUserService _userService;
-        private ISearchService _searchService;
-        public GroupController(IGroupService groupService, IUserService userService, ISearchService searchService)
+        public GroupController(IGroupService groupService, IUserService userService)
         {
             _groupService = groupService;
             _userService = userService;
-            _searchService = searchService;
+
         }
 
         public async Task<IActionResult> Add()
         {
 
-            var currentGroup = _groupService
-                .All().Where(item => item.ID == Guid.Parse("97beef5b-e273-4662-bdae-018da7005455")).Include(item => item.GroupUsers)
-                .First();
-            currentGroup.Title = "admin 2345";
-            currentGroup.IsDefault = false;
-            currentGroup.IsDeleted = false;
+            //var currentGroup = _groupService
+            //    .All().Where(item => item.ID == Guid.Parse("bddfd36e-9298-4d7c-9c72-f45a857bd465")).Include(item => item.GroupUsers)
+            //    .First();
+            //currentGroup.Title = "admin 23";
+            //currentGroup.IsDefault = false;
+            //currentGroup.IsDeleted = false;
 
-            await _groupService.Update(currentGroup, "Title");
 
-            Group newGroup = new Group()
+
+            Group currentGroup = new Group()
             {
                 Title = "Administrators 2",
                 GroupUsers = _userService.All().Select(item => new GroupUser()
@@ -45,17 +44,12 @@ namespace TriggerSearch.Web.Controllers
                     UserID = item.ID
                 }).ToList(),
             };
-
-            //var newUser = new User()
-            //{
-            //    Email = "test@gmail.com",
-            //    FirstName = "Test"
-            //};
+            await _groupService.Add(currentGroup);
 
             //await _userService.Add(newUser);
-            //await _groupService.Add(newGroup);
-
-            return Json(newGroup);
+            await _groupService.Update(currentGroup);
+            await _groupService.Delete(currentGroup);
+            return Json(currentGroup);
         }
     }
 }
